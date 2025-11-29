@@ -1,0 +1,393 @@
+---
+import '../styles/global.css'
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='viewport' content='width=device-width' />
+    <meta name='generator' content={Astro.generator} />
+    <title>Crypto Position Size Calculator</title>
+  </head>
+  <body
+    class='min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+  >
+    <main
+      class='bg-white/95 backdrop-blur-sm shadow-2xl p-8 w-full max-w-lg md:max-w-6xl border border-white/20'
+    >
+      <div class='text-center mb-8'>
+        <h1
+          class='text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2'
+        >
+          Position Size Calculator
+        </h1>
+        <p class='text-gray-600 text-sm'>
+          Calculate optimal position size for any asset
+        </p>
+      </div>
+
+      <div class='grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8'>
+        <div>
+          <form id='calcForm' class='space-y-5'>
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Asset Symbol
+              </label>
+              <input
+                type='text'
+                id='asset'
+                placeholder='BTC, ETH, etc.'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                value='BTC'
+              />
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Account Balance ($)
+              </label>
+              <input
+                type='number'
+                id='balance'
+                placeholder='5000'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                required
+              />
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Risk Percentage (%)
+              </label>
+              <input
+                type='number'
+                id='risk'
+                placeholder='1'
+                step='any'
+                min='0.0001'
+                max='100'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                required
+              />
+            </div>
+
+            <div class='grid grid-cols-2 gap-4'>
+              <div>
+                <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                  Entry Price ($)
+                </label>
+                <input
+                  type='number'
+                  id='entry'
+                  placeholder='90500'
+                  step='any'
+                  class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                  required
+                />
+              </div>
+
+              <div>
+                <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                  Stop-Loss ($)
+                </label>
+                <input
+                  type='number'
+                  id='stop'
+                  placeholder='91000'
+                  step='any'
+                  class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Leverage <span class='text-gray-400 font-normal'
+                  >(optional)</span
+                >
+              </label>
+              <input
+                type='number'
+                id='leverage'
+                placeholder='1'
+                min='1'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+              />
+            </div>
+
+            <button
+              type='submit'
+              class='w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:from-purple-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl'
+            >
+              Calculate Position Size
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <div
+            id='result'
+            class='md:sticky md:top-8 md:mt-7 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 hidden animate-fade-in'
+          >
+            <h3
+              class='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'
+            >
+              <span class='w-2 h-2 bg-purple-500'></span>
+              Calculation Results
+            </h3>
+            <div class='space-y-3'>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Position Size</p>
+                <p id='positionSize' class='text-2xl font-bold text-purple-700'>
+                </p>
+              </div>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Required Margin</p>
+                <p
+                  id='requiredMargin'
+                  class='text-xl font-bold text-indigo-700'
+                >
+                </p>
+              </div>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Risk Amount</p>
+                <p id='riskAmount' class='text-lg font-semibold text-gray-800'>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+<script>
+  // Storage keys
+  const STORAGE_KEYS = {
+    asset: 'positionCalc_asset',
+    balance: 'positionCalc_balance',
+    risk: 'positionCalc_risk',
+    entry: 'positionCalc_entry',
+    stop: 'positionCalc_stop',
+    leverage: 'positionCalc_leverage',
+    results: 'positionCalc_results',
+  }
+
+  // Save form data to localStorage
+  function saveFormData() {
+    const formData = {
+      asset: document.getElementById('asset').value,
+      balance: document.getElementById('balance').value,
+      risk: document.getElementById('risk').value,
+      entry: document.getElementById('entry').value,
+      stop: document.getElementById('stop').value,
+      leverage: document.getElementById('leverage').value,
+    }
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) {
+        localStorage.setItem(STORAGE_KEYS[key], value)
+      }
+    })
+  }
+
+  // Load form data from localStorage
+  function loadFormData() {
+    const asset = localStorage.getItem(STORAGE_KEYS.asset)
+    const balance = localStorage.getItem(STORAGE_KEYS.balance)
+    const risk = localStorage.getItem(STORAGE_KEYS.risk)
+    const entry = localStorage.getItem(STORAGE_KEYS.entry)
+    const stop = localStorage.getItem(STORAGE_KEYS.stop)
+    const leverage = localStorage.getItem(STORAGE_KEYS.leverage)
+
+    if (asset) document.getElementById('asset').value = asset
+    if (balance) document.getElementById('balance').value = balance
+    if (risk) document.getElementById('risk').value = risk
+    if (entry) document.getElementById('entry').value = entry
+    if (stop) document.getElementById('stop').value = stop
+    if (leverage) document.getElementById('leverage').value = leverage
+
+    return { asset, balance, risk, entry, stop, leverage }
+  }
+
+  // Save results to localStorage
+  function saveResults(results) {
+    localStorage.setItem(STORAGE_KEYS.results, JSON.stringify(results))
+  }
+
+  // Load results from localStorage
+  function loadResults() {
+    const saved = localStorage.getItem(STORAGE_KEYS.results)
+    return saved ? JSON.parse(saved) : null
+  }
+
+  // Format numbers appropriately
+  function formatNumber(num, decimals = 6) {
+    if (num >= 1000000)
+      return num.toLocaleString('en-US', {
+        maximumFractionDigits: decimals,
+      })
+    return num.toFixed(decimals).replace(/\.?0+$/, '')
+  }
+
+  // Calculate and display results
+  function calculateAndDisplay() {
+    const asset =
+      document.getElementById('asset').value.trim().toUpperCase() || 'ASSET'
+    const balance = parseFloat(document.getElementById('balance').value)
+    const riskPercent = parseFloat(document.getElementById('risk').value)
+    const entry = parseFloat(document.getElementById('entry').value)
+    const stop = parseFloat(document.getElementById('stop').value)
+    let leverage = parseFloat(document.getElementById('leverage').value) || 1
+
+    if (isNaN(balance) || isNaN(riskPercent) || isNaN(entry) || isNaN(stop)) {
+      return false
+    }
+
+    if (stop === entry) {
+      return false
+    }
+
+    if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+      return false
+    }
+
+    const riskAmount = (riskPercent / 100) * balance
+    const stopDistance = Math.abs(stop - entry)
+    const positionSize = riskAmount / stopDistance
+    const requiredMargin = (positionSize * entry) / leverage
+
+    const positionEl = document.getElementById('positionSize')
+    const marginEl = document.getElementById('requiredMargin')
+    const riskAmountEl = document.getElementById('riskAmount')
+    const resultDiv = document.getElementById('result')
+
+    positionEl.textContent = `${formatNumber(positionSize)} ${asset}`
+    marginEl.textContent = `$${requiredMargin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} @ ${leverage}x leverage`
+    riskAmountEl.textContent = `$${riskAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+    // Save results
+    saveResults({
+      positionSize: positionSize.toString(),
+      requiredMargin: requiredMargin.toString(),
+      riskAmount: riskAmount.toString(),
+      asset,
+      leverage,
+    })
+
+    resultDiv.classList.remove('hidden')
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+
+    return true
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('calcForm')
+    const resultDiv = document.getElementById('result')
+    const positionEl = document.getElementById('positionSize')
+    const marginEl = document.getElementById('requiredMargin')
+    const riskAmountEl = document.getElementById('riskAmount')
+
+    // Load saved form data
+    const savedData = loadFormData()
+
+    // Load and display saved results if form data is complete
+    const savedResults = loadResults()
+    if (
+      savedResults &&
+      savedData.balance &&
+      savedData.risk &&
+      savedData.entry &&
+      savedData.stop
+    ) {
+      positionEl.textContent = `${formatNumber(parseFloat(savedResults.positionSize))} ${savedResults.asset}`
+      marginEl.textContent = `$${parseFloat(savedResults.requiredMargin).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} @ ${savedResults.leverage}x leverage`
+      riskAmountEl.textContent = `$${parseFloat(savedResults.riskAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      resultDiv.classList.remove('hidden')
+    }
+
+    // Auto-calculate if all required fields are filled
+    if (
+      savedData.balance &&
+      savedData.risk &&
+      savedData.entry &&
+      savedData.stop
+    ) {
+      setTimeout(() => {
+        calculateAndDisplay()
+      }, 100)
+    }
+
+    // Add event listeners to all inputs to save on change
+    const inputs = ['asset', 'balance', 'risk', 'entry', 'stop', 'leverage']
+    inputs.forEach(id => {
+      const input = document.getElementById(id)
+      if (input) {
+        input.addEventListener('input', () => {
+          saveFormData()
+          // Auto-calculate if all required fields are filled (except leverage)
+          if (id !== 'leverage') {
+            setTimeout(() => {
+              calculateAndDisplay()
+            }, 300) // Debounce calculation
+          }
+        })
+        input.addEventListener('change', saveFormData)
+      }
+    })
+
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault()
+
+        if (!calculateAndDisplay()) {
+          const balance = parseFloat(document.getElementById('balance').value)
+          const riskPercent = parseFloat(document.getElementById('risk').value)
+          const entry = parseFloat(document.getElementById('entry').value)
+          const stop = parseFloat(document.getElementById('stop').value)
+
+          if (
+            isNaN(balance) ||
+            isNaN(riskPercent) ||
+            isNaN(entry) ||
+            isNaN(stop)
+          ) {
+            alert('Please fill out all required fields.')
+            return
+          }
+
+          if (stop === entry) {
+            alert('Stop-loss cannot be equal to entry price.')
+            return
+          }
+
+          if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+            alert('All values must be greater than zero.')
+            return
+          }
+        }
+      })
+    }
+  })
+</script>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+</style>
