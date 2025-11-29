@@ -235,7 +235,7 @@ import '../styles/global.css'
   }
 
   // Calculate and display results
-  function calculateAndDisplay() {
+  function calculateAndDisplay(shouldScroll = false) {
     const asset =
       document.getElementById('asset').value.trim().toUpperCase() || 'ASSET'
     const balance = parseFloat(document.getElementById('balance').value)
@@ -280,7 +280,11 @@ import '../styles/global.css'
     })
 
     resultDiv.classList.remove('hidden')
-    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+
+    // Only scroll when explicitly requested (button press)
+    if (shouldScroll) {
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
 
     return true
   }
@@ -344,7 +348,7 @@ import '../styles/global.css'
       form.addEventListener('submit', e => {
         e.preventDefault()
 
-        if (!calculateAndDisplay()) {
+        if (!calculateAndDisplay(true)) {
           const balance = parseFloat(document.getElementById('balance').value)
           const riskPercent = parseFloat(document.getElementById('risk').value)
           const entry = parseFloat(document.getElementById('entry').value)
