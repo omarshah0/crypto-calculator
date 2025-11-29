@@ -7,6 +7,10 @@ A modern, responsive web application for calculating optimal position sizes for 
 - **Universal Asset Support**: Works with any cryptocurrency or trading asset (BTC, ETH, etc.)
 - **Real-time Calculations**: Automatically calculates position size, required margin, and risk amount as you type
 - **Local Storage Persistence**: Saves your inputs and results automatically - your data persists across sessions
+- **Progressive Web App (PWA)**: 
+  - Installable on iOS and Android devices
+  - Works completely offline after first visit
+  - App-like experience with standalone mode
 - **Responsive Design**: 
   - Mobile: Stacked layout with calculator on top, results below
   - Desktop/Tablet: Side-by-side layout with calculator on left, results on right
@@ -40,6 +44,14 @@ pnpm dev
 ```
 
 4. Open your browser and navigate to `http://localhost:4321`
+
+## 📱 Installing as PWA
+
+This app can be installed on your iPhone or Android device and works offline! See [PWA-SETUP.md](./PWA-SETUP.md) for detailed installation instructions.
+
+**Quick Install:**
+- **iOS**: Open in Safari → Share → Add to Home Screen
+- **Android**: Open in Chrome → Menu → Install app
 
 ## 📖 How to Use
 
@@ -89,6 +101,7 @@ All commands are run from the root of the project:
 | `pnpm build`           | Build your production site to `./dist/`          |
 | `pnpm preview`         | Preview your build locally, before deploying     |
 | `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `pnpm generate-icons`  | Generate PWA icons (requires sharp package)      |
 
 ## 📐 Calculation Formula
 

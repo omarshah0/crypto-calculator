@@ -6,11 +6,16 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "generate-icons": "node scripts/generate-icons.js",
+    "postinstall": "npm run generate-icons || echo 'Icons will be generated on first build'"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
     "astro": "^5.16.2",
     "tailwindcss": "^4.1.17"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.0"
   }
 }

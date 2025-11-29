@@ -6,8 +6,15 @@ import '../styles/global.css'
   <head>
     <meta charset='utf-8' />
     <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
-    <meta name='viewport' content='width=device-width' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' />
     <meta name='generator' content={Astro.generator} />
+    <meta name='description' content='Calculate optimal position sizes for cryptocurrency trading' />
+    <meta name='theme-color' content='#7c3aed' />
+    <meta name='apple-mobile-web-app-capable' content='yes' />
+    <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+    <meta name='apple-mobile-web-app-title' content='Position Calc' />
+    <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
+    <link rel='manifest' href='/manifest.json' />
     <title>Crypto Position Size Calculator</title>
   </head>
   <body
@@ -287,6 +294,20 @@ import '../styles/global.css'
     }
 
     return true
+  }
+
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered:', registration)
+        })
+        .catch(error => {
+          console.log('Service Worker registration failed:', error)
+        })
+    })
   }
 
   document.addEventListener('DOMContentLoaded', () => {
