@@ -96,6 +96,21 @@ import Header from '../components/Header.astro'
               </div>
             </div>
 
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Take Profit ($) <span class='text-gray-400 font-normal'
+                  >(optional)</span
+                >
+              </label>
+              <input
+                type='number'
+                id='takeProfit'
+                placeholder='10'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+              />
+            </div>
+
             <button
               type='submit'
               class='w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:from-purple-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl'
@@ -135,6 +150,14 @@ import Header from '../components/Header.astro'
                 <p id='riskPerShare' class='text-lg font-semibold text-gray-800'>
                 </p>
               </div>
+              <div
+                id='profitContainer'
+                class='bg-white/80 p-4 border border-purple-100 hidden'
+              >
+                <p class='text-sm text-gray-600 mb-1'>Total Profit</p>
+                <p id='totalProfit' class='text-xl font-bold text-green-600'>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -149,6 +172,7 @@ import Header from '../components/Header.astro'
     totalRisk: 'stockCalc_totalRisk',
     entry: 'stockCalc_entry',
     stop: 'stockCalc_stop',
+    takeProfit: 'stockCalc_takeProfit',
     results: 'stockCalc_results',
   }
 
@@ -159,6 +183,7 @@ import Header from '../components/Header.astro'
       totalRisk: document.getElementById('totalRisk').value,
       entry: document.getElementById('entry').value,
       stop: document.getElementById('stop').value,
+      takeProfit: document.getElementById('takeProfit').value,
     }
 
     Object.entries(formData).forEach(([key, value]) => {
@@ -174,13 +199,15 @@ import Header from '../components/Header.astro'
     const totalRisk = localStorage.getItem(STORAGE_KEYS.totalRisk)
     const entry = localStorage.getItem(STORAGE_KEYS.entry)
     const stop = localStorage.getItem(STORAGE_KEYS.stop)
+    const takeProfit = localStorage.getItem(STORAGE_KEYS.takeProfit)
 
     if (asset) document.getElementById('asset').value = asset
     if (totalRisk) document.getElementById('totalRisk').value = totalRisk
     if (entry) document.getElementById('entry').value = entry
     if (stop) document.getElementById('stop').value = stop
+    if (takeProfit) document.getElementById('takeProfit').value = takeProfit
 
-    return { asset, totalRisk, entry, stop }
+    return { asset, totalRisk, entry, stop, takeProfit }
   }
 
   // Save results to localStorage
@@ -210,6 +237,8 @@ import Header from '../components/Header.astro'
     const totalRisk = parseFloat(document.getElementById('totalRisk').value)
     const entry = parseFloat(document.getElementById('entry').value)
     const stop = parseFloat(document.getElementById('stop').value)
+    const takeProfitValue = document.getElementById('takeProfit').value
+    const takeProfit = takeProfitValue ? parseFloat(takeProfitValue) : null
 
     if (isNaN(totalRisk) || isNaN(entry) || isNaN(stop)) {
       return false
@@ -235,19 +264,42 @@ import Header from '../components/Header.astro'
     const positionEl = document.getElementById('positionSize')
     const marginEl = document.getElementById('marginRequired')
     const riskPerShareEl = document.getElementById('riskPerShare')
+    const profitContainer = document.getElementById('profitContainer')
+    const totalProfitEl = document.getElementById('totalProfit')
     const resultDiv = document.getElementById('result')
 
     positionEl.textContent = `${formatNumber(positionSize)} shares`
     marginEl.textContent = `$${marginRequired.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     riskPerShareEl.textContent = `$${riskPerShare.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per share`
 
-    // Save results
-    saveResults({
-      positionSize: positionSize.toString(),
-      marginRequired: marginRequired.toString(),
-      riskPerShare: riskPerShare.toString(),
-      asset,
-    })
+    // Calculate and display profit if take profit is provided and higher than entry
+    if (takeProfit && !isNaN(takeProfit) && takeProfit > entry) {
+      const profitPerShare = takeProfit - entry
+      const totalProfit = positionSize * profitPerShare
+      
+      totalProfitEl.textContent = `$${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      profitContainer.classList.remove('hidden')
+      
+      // Save results with profit
+      saveResults({
+        positionSize: positionSize.toString(),
+        marginRequired: marginRequired.toString(),
+        riskPerShare: riskPerShare.toString(),
+        totalProfit: totalProfit.toString(),
+        takeProfit: takeProfit.toString(),
+        asset,
+      })
+    } else {
+      profitContainer.classList.add('hidden')
+      
+      // Save results without profit
+      saveResults({
+        positionSize: positionSize.toString(),
+        marginRequired: marginRequired.toString(),
+        riskPerShare: riskPerShare.toString(),
+        asset,
+      })
+    }
 
     resultDiv.classList.remove('hidden')
 
@@ -279,6 +331,8 @@ import Header from '../components/Header.astro'
     const positionEl = document.getElementById('positionSize')
     const marginEl = document.getElementById('marginRequired')
     const riskPerShareEl = document.getElementById('riskPerShare')
+    const profitContainer = document.getElementById('profitContainer')
+    const totalProfitEl = document.getElementById('totalProfit')
 
     // Load saved form data
     const savedData = loadFormData()
@@ -294,6 +348,21 @@ import Header from '../components/Header.astro'
       positionEl.textContent = `${formatNumber(parseFloat(savedResults.positionSize))} shares`
       marginEl.textContent = `$${parseFloat(savedResults.marginRequired).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       riskPerShareEl.textContent = `$${parseFloat(savedResults.riskPerShare).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per share`
+      
+      // Show profit if it exists in saved results
+      if (savedResults.totalProfit && savedResults.takeProfit) {
+        const savedTakeProfit = parseFloat(savedResults.takeProfit)
+        const savedEntry = parseFloat(savedData.entry)
+        if (savedTakeProfit > savedEntry) {
+          totalProfitEl.textContent = `$${parseFloat(savedResults.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          profitContainer.classList.remove('hidden')
+        } else {
+          profitContainer.classList.add('hidden')
+        }
+      } else {
+        profitContainer.classList.add('hidden')
+      }
+      
       resultDiv.classList.remove('hidden')
     }
 
@@ -309,7 +378,7 @@ import Header from '../components/Header.astro'
     }
 
     // Add event listeners to all inputs to save on change
-    const inputs = ['asset', 'totalRisk', 'entry', 'stop']
+    const inputs = ['asset', 'totalRisk', 'entry', 'stop', 'takeProfit']
     inputs.forEach(id => {
       const input = document.getElementById(id)
       if (input) {
