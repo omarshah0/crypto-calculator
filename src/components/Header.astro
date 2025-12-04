@@ -1,0 +1,33 @@
+---
+const currentPath = Astro.url.pathname
+const isCryptoPage = currentPath === '/' || currentPath === '/index.html'
+const isStockPage = currentPath === '/stock' || currentPath === '/stock.html'
+---
+
+<header class='w-full bg-white/95 backdrop-blur-sm shadow-lg border-b border-white/20 mb-8'>
+  <nav class='max-w-6xl mx-auto px-4 py-4'>
+    <div class='flex items-center justify-center gap-6'>
+      <a
+        href='/'
+        class={`px-6 py-2 font-semibold transition-colors duration-200 ${
+          isCryptoPage
+            ? 'text-purple-600 border-b-2 border-purple-600'
+            : 'text-gray-700 hover:text-purple-600'
+        }`}
+      >
+        Crypto Calculator
+      </a>
+      <a
+        href='/stock'
+        class={`px-6 py-2 font-semibold transition-colors duration-200 ${
+          isStockPage
+            ? 'text-purple-600 border-b-2 border-purple-600'
+            : 'text-gray-700 hover:text-purple-600'
+        }`}
+      >
+        Stock Calculator
+      </a>
+    </div>
+  </nav>
+</header>
+

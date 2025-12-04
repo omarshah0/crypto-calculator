@@ -9,14 +9,14 @@ import Header from '../components/Header.astro'
     <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' />
     <meta name='generator' content={Astro.generator} />
-    <meta name='description' content='Calculate optimal position sizes for cryptocurrency trading' />
+    <meta name='description' content='Calculate optimal position sizes and margin for stock trading' />
     <meta name='theme-color' content='#7c3aed' />
     <meta name='apple-mobile-web-app-capable' content='yes' />
     <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
     <meta name='apple-mobile-web-app-title' content='Position Calc' />
     <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
     <link rel='manifest' href='/manifest.json' />
-    <title>Crypto Position Size Calculator</title>
+    <title>Stock Position Size Calculator</title>
   </head>
   <body
     class='min-h-screen flex flex-col items-center p-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
@@ -29,10 +29,10 @@ import Header from '../components/Header.astro'
         <h1
           class='text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2'
         >
-          Position Size Calculator
+          Stock Position Size Calculator
         </h1>
         <p class='text-gray-600 text-sm'>
-          Calculate optimal position size for any asset
+          Calculate optimal position size and margin for stock trading
         </p>
       </div>
 
@@ -41,42 +41,26 @@ import Header from '../components/Header.astro'
           <form id='calcForm' class='space-y-5'>
             <div>
               <label class='block mb-2 text-sm font-semibold text-gray-700'>
-                Asset Symbol
+                Stock Symbol
               </label>
               <input
                 type='text'
                 id='asset'
-                placeholder='BTC, ETH, etc.'
+                placeholder='AAPL, TSLA, etc.'
                 class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
-                value='BTC'
+                value='AAPL'
               />
             </div>
 
             <div>
               <label class='block mb-2 text-sm font-semibold text-gray-700'>
-                Account Balance ($)
+                Total Risk ($)
               </label>
               <input
                 type='number'
-                id='balance'
-                placeholder='5000'
+                id='totalRisk'
+                placeholder='50000'
                 step='any'
-                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
-                required
-              />
-            </div>
-
-            <div>
-              <label class='block mb-2 text-sm font-semibold text-gray-700'>
-                Risk Percentage (%)
-              </label>
-              <input
-                type='number'
-                id='risk'
-                placeholder='1'
-                step='any'
-                min='0.0001'
-                max='100'
                 class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
                 required
               />
@@ -90,7 +74,7 @@ import Header from '../components/Header.astro'
                 <input
                   type='number'
                   id='entry'
-                  placeholder='90500'
+                  placeholder='8'
                   step='any'
                   class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
                   required
@@ -99,33 +83,17 @@ import Header from '../components/Header.astro'
 
               <div>
                 <label class='block mb-2 text-sm font-semibold text-gray-700'>
-                  Stop-Loss ($)
+                  Stop Loss ($)
                 </label>
                 <input
                   type='number'
                   id='stop'
-                  placeholder='91000'
+                  placeholder='7'
                   step='any'
                   class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
                   required
                 />
               </div>
-            </div>
-
-            <div>
-              <label class='block mb-2 text-sm font-semibold text-gray-700'>
-                Leverage <span class='text-gray-400 font-normal'
-                  >(optional)</span
-                >
-              </label>
-              <input
-                type='number'
-                id='leverage'
-                placeholder='1'
-                min='1'
-                step='any'
-                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
-              />
             </div>
 
             <button
@@ -155,16 +123,16 @@ import Header from '../components/Header.astro'
                 </p>
               </div>
               <div class='bg-white/80 p-4 border border-purple-100'>
-                <p class='text-sm text-gray-600 mb-1'>Required Margin</p>
+                <p class='text-sm text-gray-600 mb-1'>Margin Required</p>
                 <p
-                  id='requiredMargin'
+                  id='marginRequired'
                   class='text-xl font-bold text-indigo-700'
                 >
                 </p>
               </div>
               <div class='bg-white/80 p-4 border border-purple-100'>
-                <p class='text-sm text-gray-600 mb-1'>Risk Amount</p>
-                <p id='riskAmount' class='text-lg font-semibold text-gray-800'>
+                <p class='text-sm text-gray-600 mb-1'>Risk Per Share</p>
+                <p id='riskPerShare' class='text-lg font-semibold text-gray-800'>
                 </p>
               </div>
             </div>
@@ -175,26 +143,22 @@ import Header from '../components/Header.astro'
   </body>
 </html>
 <script>
-  // Storage keys
+  // Storage keys - separate from crypto calculator
   const STORAGE_KEYS = {
-    asset: 'positionCalc_asset',
-    balance: 'positionCalc_balance',
-    risk: 'positionCalc_risk',
-    entry: 'positionCalc_entry',
-    stop: 'positionCalc_stop',
-    leverage: 'positionCalc_leverage',
-    results: 'positionCalc_results',
+    asset: 'stockCalc_asset',
+    totalRisk: 'stockCalc_totalRisk',
+    entry: 'stockCalc_entry',
+    stop: 'stockCalc_stop',
+    results: 'stockCalc_results',
   }
 
   // Save form data to localStorage
   function saveFormData() {
     const formData = {
       asset: document.getElementById('asset').value,
-      balance: document.getElementById('balance').value,
-      risk: document.getElementById('risk').value,
+      totalRisk: document.getElementById('totalRisk').value,
       entry: document.getElementById('entry').value,
       stop: document.getElementById('stop').value,
-      leverage: document.getElementById('leverage').value,
     }
 
     Object.entries(formData).forEach(([key, value]) => {
@@ -207,20 +171,16 @@ import Header from '../components/Header.astro'
   // Load form data from localStorage
   function loadFormData() {
     const asset = localStorage.getItem(STORAGE_KEYS.asset)
-    const balance = localStorage.getItem(STORAGE_KEYS.balance)
-    const risk = localStorage.getItem(STORAGE_KEYS.risk)
+    const totalRisk = localStorage.getItem(STORAGE_KEYS.totalRisk)
     const entry = localStorage.getItem(STORAGE_KEYS.entry)
     const stop = localStorage.getItem(STORAGE_KEYS.stop)
-    const leverage = localStorage.getItem(STORAGE_KEYS.leverage)
 
     if (asset) document.getElementById('asset').value = asset
-    if (balance) document.getElementById('balance').value = balance
-    if (risk) document.getElementById('risk').value = risk
+    if (totalRisk) document.getElementById('totalRisk').value = totalRisk
     if (entry) document.getElementById('entry').value = entry
     if (stop) document.getElementById('stop').value = stop
-    if (leverage) document.getElementById('leverage').value = leverage
 
-    return { asset, balance, risk, entry, stop, leverage }
+    return { asset, totalRisk, entry, stop }
   }
 
   // Save results to localStorage
@@ -246,14 +206,12 @@ import Header from '../components/Header.astro'
   // Calculate and display results
   function calculateAndDisplay(shouldScroll = false) {
     const asset =
-      document.getElementById('asset').value.trim().toUpperCase() || 'ASSET'
-    const balance = parseFloat(document.getElementById('balance').value)
-    const riskPercent = parseFloat(document.getElementById('risk').value)
+      document.getElementById('asset').value.trim().toUpperCase() || 'STOCK'
+    const totalRisk = parseFloat(document.getElementById('totalRisk').value)
     const entry = parseFloat(document.getElementById('entry').value)
     const stop = parseFloat(document.getElementById('stop').value)
-    let leverage = parseFloat(document.getElementById('leverage').value) || 1
 
-    if (isNaN(balance) || isNaN(riskPercent) || isNaN(entry) || isNaN(stop)) {
+    if (isNaN(totalRisk) || isNaN(entry) || isNaN(stop)) {
       return false
     }
 
@@ -261,31 +219,34 @@ import Header from '../components/Header.astro'
       return false
     }
 
-    if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+    if (totalRisk <= 0 || entry <= 0 || stop <= 0) {
       return false
     }
 
-    const riskAmount = (riskPercent / 100) * balance
-    const stopDistance = Math.abs(stop - entry)
-    const positionSize = riskAmount / stopDistance
-    const requiredMargin = (positionSize * entry) / leverage
+    // Calculate Risk Per Share
+    const riskPerShare = entry - stop
+    
+    // Calculate Position Size: TotalRisk / (EntryPrice - StopLoss)
+    const positionSize = totalRisk / riskPerShare
+    
+    // Calculate Margin Required: PositionSize * EntryPrice
+    const marginRequired = positionSize * entry
 
     const positionEl = document.getElementById('positionSize')
-    const marginEl = document.getElementById('requiredMargin')
-    const riskAmountEl = document.getElementById('riskAmount')
+    const marginEl = document.getElementById('marginRequired')
+    const riskPerShareEl = document.getElementById('riskPerShare')
     const resultDiv = document.getElementById('result')
 
-    positionEl.textContent = `${formatNumber(positionSize)} ${asset}`
-    marginEl.textContent = `$${requiredMargin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} @ ${leverage}x leverage`
-    riskAmountEl.textContent = `$${riskAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    positionEl.textContent = `${formatNumber(positionSize)} shares`
+    marginEl.textContent = `$${marginRequired.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    riskPerShareEl.textContent = `$${riskPerShare.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per share`
 
     // Save results
     saveResults({
       positionSize: positionSize.toString(),
-      requiredMargin: requiredMargin.toString(),
-      riskAmount: riskAmount.toString(),
+      marginRequired: marginRequired.toString(),
+      riskPerShare: riskPerShare.toString(),
       asset,
-      leverage,
     })
 
     resultDiv.classList.remove('hidden')
@@ -316,8 +277,8 @@ import Header from '../components/Header.astro'
     const form = document.getElementById('calcForm')
     const resultDiv = document.getElementById('result')
     const positionEl = document.getElementById('positionSize')
-    const marginEl = document.getElementById('requiredMargin')
-    const riskAmountEl = document.getElementById('riskAmount')
+    const marginEl = document.getElementById('marginRequired')
+    const riskPerShareEl = document.getElementById('riskPerShare')
 
     // Load saved form data
     const savedData = loadFormData()
@@ -326,21 +287,19 @@ import Header from '../components/Header.astro'
     const savedResults = loadResults()
     if (
       savedResults &&
-      savedData.balance &&
-      savedData.risk &&
+      savedData.totalRisk &&
       savedData.entry &&
       savedData.stop
     ) {
-      positionEl.textContent = `${formatNumber(parseFloat(savedResults.positionSize))} ${savedResults.asset}`
-      marginEl.textContent = `$${parseFloat(savedResults.requiredMargin).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} @ ${savedResults.leverage}x leverage`
-      riskAmountEl.textContent = `$${parseFloat(savedResults.riskAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      positionEl.textContent = `${formatNumber(parseFloat(savedResults.positionSize))} shares`
+      marginEl.textContent = `$${parseFloat(savedResults.marginRequired).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      riskPerShareEl.textContent = `$${parseFloat(savedResults.riskPerShare).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} per share`
       resultDiv.classList.remove('hidden')
     }
 
     // Auto-calculate if all required fields are filled
     if (
-      savedData.balance &&
-      savedData.risk &&
+      savedData.totalRisk &&
       savedData.entry &&
       savedData.stop
     ) {
@@ -350,14 +309,14 @@ import Header from '../components/Header.astro'
     }
 
     // Add event listeners to all inputs to save on change
-    const inputs = ['asset', 'balance', 'risk', 'entry', 'stop', 'leverage']
+    const inputs = ['asset', 'totalRisk', 'entry', 'stop']
     inputs.forEach(id => {
       const input = document.getElementById(id)
       if (input) {
         input.addEventListener('input', () => {
           saveFormData()
-          // Auto-calculate if all required fields are filled (except leverage)
-          if (id !== 'leverage') {
+          // Auto-calculate if all required fields are filled
+          if (id !== 'asset') {
             setTimeout(() => {
               calculateAndDisplay()
             }, 300) // Debounce calculation
@@ -372,14 +331,12 @@ import Header from '../components/Header.astro'
         e.preventDefault()
 
         if (!calculateAndDisplay(true)) {
-          const balance = parseFloat(document.getElementById('balance').value)
-          const riskPercent = parseFloat(document.getElementById('risk').value)
+          const totalRisk = parseFloat(document.getElementById('totalRisk').value)
           const entry = parseFloat(document.getElementById('entry').value)
           const stop = parseFloat(document.getElementById('stop').value)
 
           if (
-            isNaN(balance) ||
-            isNaN(riskPercent) ||
+            isNaN(totalRisk) ||
             isNaN(entry) ||
             isNaN(stop)
           ) {
@@ -392,7 +349,7 @@ import Header from '../components/Header.astro'
             return
           }
 
-          if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+          if (totalRisk <= 0 || entry <= 0 || stop <= 0) {
             alert('All values must be greater than zero.')
             return
           }
@@ -418,3 +375,4 @@ import Header from '../components/Header.astro'
     animation: fade-in 0.3s ease-out;
   }
 </style>
+
