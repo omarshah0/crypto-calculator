@@ -1,0 +1,555 @@
+---
+import '../styles/global.css'
+import Header from '../components/Header.astro'
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' />
+    <meta name='generator' content={Astro.generator} />
+    <meta name='description' content='Calculate optimal lot sizes for forex trading' />
+    <meta name='theme-color' content='#7c3aed' />
+    <meta name='apple-mobile-web-app-capable' content='yes' />
+    <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+    <meta name='apple-mobile-web-app-title' content='Position Calc' />
+    <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
+    <link rel='manifest' href='/manifest.json' />
+    <title>Forex Lot Size Calculator</title>
+  </head>
+  <body
+    class='min-h-screen flex flex-col items-center p-4 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+  >
+    <Header />
+    <main
+      class='bg-white/95 backdrop-blur-sm shadow-2xl p-8 w-full max-w-lg md:max-w-6xl border border-white/20'
+    >
+      <div class='text-center mb-8'>
+        <h1
+          class='text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2'
+        >
+          Forex Lot Size Calculator
+        </h1>
+        <p class='text-gray-600 text-sm'>
+          Calculate optimal lot size for forex trading
+        </p>
+      </div>
+
+      <div class='grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8'>
+        <div>
+          <form id='calcForm' class='space-y-5'>
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Currency Pair
+              </label>
+              <select
+                id='instrument'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                required
+              >
+                <option value='EURUSD' selected>EUR/USD</option>
+                <option value='GBPUSD'>GBP/USD</option>
+                <option value='USDJPY'>USD/JPY</option>
+              </select>
+            </div>
+
+            <div id='jpyAskContainer' class='hidden'>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Current USD/JPY Ask Price
+              </label>
+              <input
+                type='number'
+                id='jpyAsk'
+                placeholder='150.00'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+              />
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Starting Balance ($)
+              </label>
+              <input
+                type='number'
+                id='balance'
+                placeholder='10000'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                required
+              />
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Risk Percentage (%)
+              </label>
+              <input
+                type='number'
+                id='risk'
+                placeholder='1'
+                step='any'
+                min='0.0001'
+                max='100'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                required
+              />
+            </div>
+
+            <div class='grid grid-cols-2 gap-4'>
+              <div>
+                <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                  Entry Price
+                </label>
+                <input
+                  type='number'
+                  id='entry'
+                  placeholder='1.0850'
+                  step='any'
+                  class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                  required
+                />
+              </div>
+
+              <div>
+                <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                  Stop Loss
+                </label>
+                <input
+                  type='number'
+                  id='stop'
+                  placeholder='1.0800'
+                  step='any'
+                  class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class='block mb-2 text-sm font-semibold text-gray-700'>
+                Take Profit <span class='text-gray-400 font-normal'
+                  >(optional)</span
+                >
+              </label>
+              <input
+                type='number'
+                id='takeProfit'
+                placeholder='1.0900'
+                step='any'
+                class='w-full px-4 py-3 border-2 border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-gray-800'
+              />
+            </div>
+
+            <button
+              type='submit'
+              class='w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:from-purple-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl'
+            >
+              Calculate Lot Size
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <div
+            id='result'
+            class='md:sticky md:top-8 md:mt-7 p-6 bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 hidden animate-fade-in'
+          >
+            <h3
+              class='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'
+            >
+              <span class='w-2 h-2 bg-purple-500'></span>
+              Calculation Results
+            </h3>
+            <div class='space-y-3'>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Lot Size</p>
+                <p id='lotSize' class='text-2xl font-bold text-purple-700'>
+                </p>
+              </div>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Units</p>
+                <p
+                  id='units'
+                  class='text-xl font-bold text-indigo-700'
+                >
+                </p>
+              </div>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Risk Amount</p>
+                <p id='riskAmount' class='text-lg font-semibold text-gray-800'>
+                </p>
+              </div>
+              <div class='bg-white/80 p-4 border border-purple-100'>
+                <p class='text-sm text-gray-600 mb-1'>Pips at Risk</p>
+                <p id='pipsRisk' class='text-lg font-semibold text-gray-800'>
+                </p>
+              </div>
+              <div
+                id='profitContainer'
+                class='bg-white/80 p-4 border border-purple-100 hidden'
+              >
+                <p class='text-sm text-gray-600 mb-1'>Potential Profit</p>
+                <p id='potentialProfit' class='text-xl font-bold text-green-600'>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+<script>
+  // Storage keys - separate from other calculators
+  const STORAGE_KEYS = {
+    instrument: 'forexCalc_instrument',
+    jpyAsk: 'forexCalc_jpyAsk',
+    balance: 'forexCalc_balance',
+    risk: 'forexCalc_risk',
+    entry: 'forexCalc_entry',
+    stop: 'forexCalc_stop',
+    takeProfit: 'forexCalc_takeProfit',
+    results: 'forexCalc_results',
+  }
+
+  // Save form data to localStorage
+  function saveFormData() {
+    const formData = {
+      instrument: document.getElementById('instrument').value,
+      jpyAsk: document.getElementById('jpyAsk').value,
+      balance: document.getElementById('balance').value,
+      risk: document.getElementById('risk').value,
+      entry: document.getElementById('entry').value,
+      stop: document.getElementById('stop').value,
+      takeProfit: document.getElementById('takeProfit').value,
+    }
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) {
+        localStorage.setItem(STORAGE_KEYS[key], value)
+      }
+    })
+  }
+
+  // Load form data from localStorage
+  function loadFormData() {
+    const instrument = localStorage.getItem(STORAGE_KEYS.instrument)
+    const jpyAsk = localStorage.getItem(STORAGE_KEYS.jpyAsk)
+    const balance = localStorage.getItem(STORAGE_KEYS.balance)
+    const risk = localStorage.getItem(STORAGE_KEYS.risk)
+    const entry = localStorage.getItem(STORAGE_KEYS.entry)
+    const stop = localStorage.getItem(STORAGE_KEYS.stop)
+    const takeProfit = localStorage.getItem(STORAGE_KEYS.takeProfit)
+
+    if (instrument) document.getElementById('instrument').value = instrument
+    if (jpyAsk) document.getElementById('jpyAsk').value = jpyAsk
+    if (balance) document.getElementById('balance').value = balance
+    if (risk) document.getElementById('risk').value = risk
+    if (entry) document.getElementById('entry').value = entry
+    if (stop) document.getElementById('stop').value = stop
+    if (takeProfit) document.getElementById('takeProfit').value = takeProfit
+
+    return { instrument, jpyAsk, balance, risk, entry, stop, takeProfit }
+  }
+
+  // Save results to localStorage
+  function saveResults(results) {
+    localStorage.setItem(STORAGE_KEYS.results, JSON.stringify(results))
+  }
+
+  // Load results from localStorage
+  function loadResults() {
+    const saved = localStorage.getItem(STORAGE_KEYS.results)
+    return saved ? JSON.parse(saved) : null
+  }
+
+  // Calculate pips based on currency pair
+  function calculatePips(entry, stop, instrument) {
+    const diff = Math.abs(entry - stop)
+    
+    if (instrument === 'USDJPY') {
+      // For JPY pairs, 1 pip = 0.01
+      return Math.round(diff * 100)
+    } else {
+      // For other pairs, 1 pip = 0.0001
+      return Math.round(diff * 10000)
+    }
+  }
+
+  // Get pip value based on currency pair
+  function getPipValue(instrument, jpyAsk) {
+    // Standard lot size = 100,000 units
+    if (instrument === 'EURUSD' || instrument === 'GBPUSD') {
+      // For USD quote pairs, pip value = $10 per standard lot
+      return 10
+    } else if (instrument === 'USDJPY') {
+      // For JPY pairs, pip value = 1000 JPY per standard lot
+      // Convert to USD: 1000 / current_rate
+      if (jpyAsk && jpyAsk > 0) {
+        return 1000 / jpyAsk
+      }
+      // Default if no ask price provided
+      return 10
+    }
+    return 10
+  }
+
+  // Calculate and display results
+  function calculateAndDisplay(shouldScroll = false) {
+    const instrument = document.getElementById('instrument').value
+    const jpyAsk = parseFloat(document.getElementById('jpyAsk').value) || 150
+    const balance = parseFloat(document.getElementById('balance').value)
+    const riskPercent = parseFloat(document.getElementById('risk').value)
+    const entry = parseFloat(document.getElementById('entry').value)
+    const stop = parseFloat(document.getElementById('stop').value)
+    const takeProfitValue = document.getElementById('takeProfit').value
+    const takeProfit = takeProfitValue ? parseFloat(takeProfitValue) : null
+
+    if (isNaN(balance) || isNaN(riskPercent) || isNaN(entry) || isNaN(stop)) {
+      return false
+    }
+
+    if (stop === entry) {
+      return false
+    }
+
+    if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+      return false
+    }
+
+    // If USDJPY is selected and no ask price, return false
+    if (instrument === 'USDJPY' && (!jpyAsk || jpyAsk <= 0)) {
+      alert('Please enter the current USD/JPY Ask price')
+      return false
+    }
+
+    // Calculate risk amount in dollars
+    const riskAmount = (riskPercent / 100) * balance
+    
+    // Calculate pips at risk
+    const pipsAtRisk = calculatePips(entry, stop, instrument)
+    
+    // Get pip value for the currency pair
+    const pipValue = getPipValue(instrument, jpyAsk)
+    
+    // Calculate lot size: Risk Amount / (Pips at Risk × Pip Value)
+    const lotSize = riskAmount / (pipsAtRisk * pipValue)
+    
+    // Calculate units (1 standard lot = 100,000 units)
+    const units = lotSize * 100000
+
+    const lotSizeEl = document.getElementById('lotSize')
+    const unitsEl = document.getElementById('units')
+    const riskAmountEl = document.getElementById('riskAmount')
+    const pipsRiskEl = document.getElementById('pipsRisk')
+    const profitContainer = document.getElementById('profitContainer')
+    const potentialProfitEl = document.getElementById('potentialProfit')
+    const resultDiv = document.getElementById('result')
+
+    lotSizeEl.textContent = `${lotSize.toFixed(2)} lots`
+    unitsEl.textContent = `${units.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} units`
+    riskAmountEl.textContent = `$${riskAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    pipsRiskEl.textContent = `${pipsAtRisk} pips`
+
+    // Calculate profit if take profit is provided
+    let potentialProfit = null
+    if (takeProfit && !isNaN(takeProfit)) {
+      const isLong = entry < stop ? false : true // If entry < stop, it's a short position
+      
+      if ((isLong && takeProfit > entry) || (!isLong && takeProfit < entry)) {
+        const profitPips = calculatePips(entry, takeProfit, instrument)
+        potentialProfit = lotSize * profitPips * pipValue
+        
+        potentialProfitEl.textContent = `$${potentialProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        profitContainer.classList.remove('hidden')
+      } else {
+        profitContainer.classList.add('hidden')
+      }
+    } else {
+      profitContainer.classList.add('hidden')
+    }
+
+    // Save results
+    const results = {
+      lotSize: lotSize.toString(),
+      units: units.toString(),
+      riskAmount: riskAmount.toString(),
+      pipsAtRisk: pipsAtRisk.toString(),
+      instrument,
+    }
+    
+    if (potentialProfit) {
+      results.potentialProfit = potentialProfit.toString()
+      results.takeProfit = takeProfit.toString()
+    }
+    
+    saveResults(results)
+
+    resultDiv.classList.remove('hidden')
+
+    // Only scroll when explicitly requested (button press)
+    if (shouldScroll) {
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    return true
+  }
+
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered:', registration)
+        })
+        .catch(error => {
+          console.log('Service Worker registration failed:', error)
+        })
+    })
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('calcForm')
+    const resultDiv = document.getElementById('result')
+    const instrumentSelect = document.getElementById('instrument')
+    const jpyAskContainer = document.getElementById('jpyAskContainer')
+
+    // Handle instrument selection change
+    instrumentSelect.addEventListener('change', () => {
+      if (instrumentSelect.value === 'USDJPY') {
+        jpyAskContainer.classList.remove('hidden')
+        document.getElementById('jpyAsk').setAttribute('required', 'required')
+      } else {
+        jpyAskContainer.classList.add('hidden')
+        document.getElementById('jpyAsk').removeAttribute('required')
+      }
+      saveFormData()
+      // Recalculate if all required fields are filled
+      setTimeout(() => {
+        calculateAndDisplay()
+      }, 100)
+    })
+
+    // Load saved form data
+    const savedData = loadFormData()
+
+    // Show/hide JPY Ask container based on saved instrument
+    if (savedData.instrument === 'USDJPY') {
+      jpyAskContainer.classList.remove('hidden')
+      document.getElementById('jpyAsk').setAttribute('required', 'required')
+    }
+
+    // Load and display saved results if form data is complete
+    const savedResults = loadResults()
+    if (
+      savedResults &&
+      savedData.balance &&
+      savedData.risk &&
+      savedData.entry &&
+      savedData.stop
+    ) {
+      const lotSizeEl = document.getElementById('lotSize')
+      const unitsEl = document.getElementById('units')
+      const riskAmountEl = document.getElementById('riskAmount')
+      const pipsRiskEl = document.getElementById('pipsRisk')
+      const profitContainer = document.getElementById('profitContainer')
+      const potentialProfitEl = document.getElementById('potentialProfit')
+      
+      lotSizeEl.textContent = `${parseFloat(savedResults.lotSize).toFixed(2)} lots`
+      unitsEl.textContent = `${parseFloat(savedResults.units).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} units`
+      riskAmountEl.textContent = `$${parseFloat(savedResults.riskAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      pipsRiskEl.textContent = `${savedResults.pipsAtRisk} pips`
+      
+      // Show profit if it exists in saved results
+      if (savedResults.potentialProfit && savedResults.takeProfit) {
+        potentialProfitEl.textContent = `$${parseFloat(savedResults.potentialProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        profitContainer.classList.remove('hidden')
+      } else {
+        profitContainer.classList.add('hidden')
+      }
+      
+      resultDiv.classList.remove('hidden')
+    }
+
+    // Auto-calculate if all required fields are filled
+    if (
+      savedData.balance &&
+      savedData.risk &&
+      savedData.entry &&
+      savedData.stop
+    ) {
+      setTimeout(() => {
+        calculateAndDisplay()
+      }, 100)
+    }
+
+    // Add event listeners to all inputs to save on change
+    const inputs = ['instrument', 'jpyAsk', 'balance', 'risk', 'entry', 'stop', 'takeProfit']
+    inputs.forEach(id => {
+      const input = document.getElementById(id)
+      if (input) {
+        input.addEventListener('input', () => {
+          saveFormData()
+          // Auto-calculate if all required fields are filled
+          setTimeout(() => {
+            calculateAndDisplay()
+          }, 300) // Debounce calculation
+        })
+        input.addEventListener('change', saveFormData)
+      }
+    })
+
+    if (form) {
+      form.addEventListener('submit', e => {
+        e.preventDefault()
+
+        if (!calculateAndDisplay(true)) {
+          const balance = parseFloat(document.getElementById('balance').value)
+          const riskPercent = parseFloat(document.getElementById('risk').value)
+          const entry = parseFloat(document.getElementById('entry').value)
+          const stop = parseFloat(document.getElementById('stop').value)
+
+          if (
+            isNaN(balance) ||
+            isNaN(riskPercent) ||
+            isNaN(entry) ||
+            isNaN(stop)
+          ) {
+            alert('Please fill out all required fields.')
+            return
+          }
+
+          if (stop === entry) {
+            alert('Stop-loss cannot be equal to entry price.')
+            return
+          }
+
+          if (balance <= 0 || riskPercent <= 0 || entry <= 0 || stop <= 0) {
+            alert('All values must be greater than zero.')
+            return
+          }
+        }
+      })
+    }
+  })
+</script>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+</style>

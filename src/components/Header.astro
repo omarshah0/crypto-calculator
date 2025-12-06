@@ -2,11 +2,12 @@
 const currentPath = Astro.url.pathname
 const isCryptoPage = currentPath === '/' || currentPath === '/index.html'
 const isStockPage = currentPath === '/stock' || currentPath === '/stock.html'
+const isForexPage = currentPath === '/forex' || currentPath === '/forex.html'
 ---
 
 <header class='w-full bg-white/95 backdrop-blur-sm shadow-lg border-b border-white/20 mb-8'>
   <nav class='max-w-6xl mx-auto px-4 py-4'>
-    <div class='flex items-center justify-center gap-6'>
+    <div class='flex items-center justify-center gap-6 flex-wrap'>
       <a
         href='/'
         class={`px-6 py-2 font-semibold transition-colors duration-200 ${
@@ -15,7 +16,7 @@ const isStockPage = currentPath === '/stock' || currentPath === '/stock.html'
             : 'text-gray-700 hover:text-purple-600'
         }`}
       >
-        Crypto Calculator
+        Crypto
       </a>
       <a
         href='/stock'
@@ -25,7 +26,17 @@ const isStockPage = currentPath === '/stock' || currentPath === '/stock.html'
             : 'text-gray-700 hover:text-purple-600'
         }`}
       >
-        Stock Calculator
+        Stock
+      </a>
+      <a
+        href='/forex'
+        class={`px-6 py-2 font-semibold transition-colors duration-200 ${
+          isForexPage
+            ? 'text-purple-600 border-b-2 border-purple-600'
+            : 'text-gray-700 hover:text-purple-600'
+        }`}
+      >
+        Forex
       </a>
     </div>
   </nav>
